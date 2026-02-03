@@ -1,26 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { Ingestion } from './components/Ingestion.tsx';
+import { Ingestion } from './components/Ingestion'; // ลบ .tsx ออกเพื่อให้เหมือนกับไฟล์อื่น
 import { Kanban } from './components/Kanban';
 import { Reporting } from './components/Reporting';
 import { MediaItem } from './types';
-// Import xlsx for export in Reporting component
+// Import xlsx for export
 import * as XLSX from 'xlsx';
 
-// Initialize local storage key
 const STORAGE_KEY = 'moc_media_items';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState('kanban');
   const [items, setItems] = useState<MediaItem[]>([]);
 
-  // Load from local storage on mount
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Data Migration: Ensure suggestedMediaType is an array (legacy data might be string)
         const migratedItems = parsed.map((item: any) => ({
           ...item,
           suggestedMediaType: Array.isArray(item.suggestedMediaType) 
@@ -34,14 +31,15 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Save to local storage on change
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    if (items.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
   }, [items]);
 
   const handleAddItem = (newItem: MediaItem) => {
     setItems(prev => [newItem, ...prev]);
-    setCurrentView('kanban'); // Auto switch to Kanban after adding
+    setCurrentView('kanban');
   };
 
   const handleUpdateItem = (updatedItem: MediaItem) => {
@@ -72,7 +70,7 @@ const App: React.FC = () => {
       <main className="flex-1 ml-64 p-8 overflow-y-auto h-screen">
         <header className="mb-8 flex justify-between items-end">
             <div>
-                <h1 className="text-3xl font-bold text-moc-blue">
+                <h1 className="text-3xl font-bold text-blue-900">
                     {currentView === 'ingestion' && 'News Ingestion'}
                     {currentView === 'kanban' && 'Production Workflow'}
                     {currentView === 'reporting' && 'Archive & Reports'}
