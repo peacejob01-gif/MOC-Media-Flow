@@ -8,9 +8,11 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": "@google/generative-ai": "^0.21.0",
-  "uuid": "^9.0.0", {
-    "lucide-react": "^0.563.0",
+  "dependencies": {
+  "@google/generative-ai": "^0.21.0",
+  "uuid": "^9.0.0",
+  "lucide-react": "^0.x.x"
+}
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "@google/genai": "^1.39.0",
