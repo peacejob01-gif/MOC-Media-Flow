@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { Ingestion } from './components/Ingestion'; // ลบ .tsx ออกเพื่อให้เหมือนกับไฟล์อื่น
+import { Ingestion } from './components/Ingestion'; 
 import { Kanban } from './components/Kanban';
 import { Reporting } from './components/Reporting';
 import { MediaItem } from './types';
-// Import xlsx for export
 import * as XLSX from 'xlsx';
 
 const STORAGE_KEY = 'moc_media_items';
