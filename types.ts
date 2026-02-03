@@ -1,25 +1,23 @@
 export type Pillar = 'Trust' | 'Update' | 'Policy';
-export type Status = 'Backlog' | 'In Production' | 'Reviewing' | 'Approved' | 'Published';
+export type Status = 'Backlog' | 'In Progress' | 'Review' | 'Done';
 
 export interface MediaItem {
   id: string;
-  date: string;
   headline: string;
   rawContent: string;
+  priority: number;
   pillar: Pillar;
-  priority: number; // 1-10
-  suggestedMediaType: string[]; // Changed from string to string[]
+  suggestedMediaType: string[];
   assignee: string;
   status: Status;
-  liveLink?: string;
-  feedback?: string;
-  comments?: string[];
+  date: string;
+  summary?: string;
 }
 
 export interface AnalysisResult {
   headline: string;
   priority: number;
-  pillar: Pillar;
+  pillar: string;
   suggestedMediaType: string[];
   summary: string;
 }
