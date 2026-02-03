@@ -1,67 +1,78 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { AnalysisResult } from '../types';
 
+// เลือกใช้ Key ให้ตรงกับที่คุณตั้งใน Vercel
+// ถ้าใช้ Vite ต้องใช้ import.meta.env.VITE_GEMINI_API_KEY
+// ถ้าใช้ Create React App ต้องใช้ process.env.REACT_APP_GEMINI_API_KEY
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
+
 export const analyzeContent = async (text: string): Promise<AnalysisResult> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
+  if (!API_KEY) {
+    console.error("API Key is missing! Check your Environment Variables.");
     throw new Error("API Key is missing");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
+  const genAI = new GoogleGenerativeAI(API_KEY);
+
+  // กำหนด Schema เพื่อให้ AI ตอบกลับเป็น JSON ที่ถูกต้องแม่นยำ
+  const schema = {
+    description: "Analysis of PR/News text",
+    type: SchemaType.OBJECT,
+    properties: {
+      headline: { type: SchemaType.STRING },
+      priority: { type: SchemaType.NUMBER },
+      pillar: { 
+        type: SchemaType.STRING, 
+        enum: ["Trust", "Update", "Policy"] 
+      },
+      suggestedMediaType: {
+        type: SchemaType.ARRAY,
+        items: { type: SchemaType.STRING }
+      },
+      summary: { type: SchemaType.STRING }
+    },
+    required: ["headline", "priority", "pillar", "suggestedMediaType", "summary"],
+  };
+
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash", // แนะนำตัวนี้เพราะเร็วและรองรับ JSON Mode ได้ดี
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: schema,
+    },
+  });
 
   const prompt = `
-    Analyze the following PR/News text (likely in Thai) for the Ministry of Commerce workflow.
+    Analyze the following PR/News text for the Ministry of Commerce workflow.
+    Context: Ministry of Commerce, Thailand.
     
-    1. Summarize the headline (keep it punchy).
-    2. Determine the 'Pillar' based on context:
-       - 'Trust': Building confidence, safety, standards.
+    1. Summarize the headline (keep it punchy, in Thai).
+    2. Determine the 'Pillar':
+       - 'Trust': Confidence, standards, safety.
        - 'Update': Daily news, prices, stats.
-       - 'Policy': Ministerial announcements, new regulations.
-       - Default to 'Update' if unsure.
-    3. Assign a Priority score (1-10) based on urgency and impact.
-    4. Suggest the best media types (select one or more from: Infographic, Banner, Photo Album, Video).
-    5. Provide a short summary.
+       - 'Policy': Regulations, announcements.
+    3. Priority (1-10).
+    4. Suggest media types (Infographic, Banner, Photo Album, Video).
+    5. Short summary (in Thai).
 
     Text to analyze:
     "${text}"
   `;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            headline: { type: Type.STRING },
-            priority: { type: Type.NUMBER },
-            pillar: { type: Type.STRING, enum: ["Trust", "Update", "Policy"] },
-            suggestedMediaType: { 
-              type: Type.ARRAY, 
-              items: { type: Type.STRING } 
-            },
-            summary: { type: Type.STRING }
-          },
-          required: ["headline", "priority", "pillar", "suggestedMediaType", "summary"]
-        }
-      }
-    });
-
-    const resultText = response.text;
-    if (!resultText) throw new Error("No response from AI");
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const resultText = response.text();
 
     return JSON.parse(resultText) as AnalysisResult;
   } catch (error) {
     console.error("Gemini Analysis Error:", error);
-    // Fallback in case of error
     return {
-      headline: "Manual Review Required",
+      headline: "เกิดข้อผิดพลาดในการวิเคราะห์",
       priority: 5,
       pillar: "Update",
-      suggestedMediaType: ["Unknown"],
-      summary: "Could not analyze text automatically."
+      suggestedMediaType: ["Manual Review"],
+      summary: "ไม่สามารถวิเคราะห์ข้อมูลอัตโนมัติได้ในขณะนี้"
     };
   }
 };
