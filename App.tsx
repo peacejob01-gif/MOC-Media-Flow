@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { Ingestion } from './components/Ingestion';
+import { Ingestion } from './components/Ingestion.tsx';
 import { Kanban } from './components/Kanban';
 import { Reporting } from './components/Reporting';
 import { MediaItem } from './types';
