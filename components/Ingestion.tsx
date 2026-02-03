@@ -4,6 +4,32 @@ import { analyzeContent } from '../services/geminiService';
 import { MediaItem, Pillar, Status } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
+// เพิ่มการ Import ใน Ingestion.tsx
+import { analyzeNewsWithAI } from '../lib/gemini';
+
+// ภายใน Component Ingestion
+const [loading, setLoading] = useState(false);
+
+const handleAutoAnalyze = async (text: string) => {
+  if (!text) return alert("กรุณากรอกเนื้อหาข่าวก่อนครับ");
+  
+  setLoading(true);
+  try {
+    const aiResult = await analyzeNewsWithAI(text);
+    
+    // นำค่าที่ AI วิเคราะห์ได้ ไปใส่ใน State ของ Form คุณ
+    // ตัวอย่างเช่น:
+    // setTitle(aiResult.suggestedTitle);
+    // setCategory(aiResult.category);
+    
+    alert("AI วิเคราะห์สำเร็จ!");
+  } catch (error) {
+    alert("AI ทำงานขัดข้อง ตรวจสอบ Console หรือ API Key");
+  } finally {
+    setLoading(false);
+  }
+};
+
 interface IngestionProps {
   onAddItem: (item: MediaItem) => void;
 }
